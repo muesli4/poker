@@ -19,7 +19,7 @@ module Matcher
     , setConsecutiveBy
     , splitBy
     , filter
-    -- * Combinators on matchers
+    -- * Combine matchers
     , before
     , onRestOf
     , onMatchOf
