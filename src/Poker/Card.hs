@@ -82,8 +82,8 @@ compareHandDescr (HandDescr lh lcs lr) (HandDescr rh rcs rr) = case compare lh r
     where
     lCompare = compare `on` reverse . map cRank
 
-consecutiveRank :: Matcher Card
-consecutiveRank = consecutiveBy cRank
+setConsecutiveRank :: Matcher Card
+setConsecutiveRank = setConsecutiveBy cRank
 
 fromRank :: Rank -> Matcher Card
 fromRank rank = M.dropWhile $ (< rank) . cRank
@@ -99,7 +99,7 @@ toHandDescr :: (Hand, [Match Card]) -> HandDescr
 toHandDescr (h, ms) = uncurry (HandDescr h) $ head ms
 
 highestHand :: [Card] -> Maybe HandDescr
-highestHand hand = toHandDescr <$> firstMatchOf handMatchers (sort hand)
+highestHand cs = toHandDescr <$> firstMatchOf handMatchers cs
   where
     handMatchers    = [ (royalFlushM, RoyalFlush)
                       , (straightFlushM, StraightFlush)
@@ -113,13 +113,13 @@ highestHand hand = toHandDescr <$> firstMatchOf handMatchers (sort hand)
                       , (highCardM, HighCard)
                       ]
 
-    royalFlushM     = splitBySuit >-> consecutiveRank >-> fromRank Ten >-> atLeast 5
+    royalFlushM     = splitBySuit >-> setConsecutiveRank >-> fromRank Ten >-> atLeast 5
     straightFlushM  = splitBySuit >-> straightM
     fourOfAKindM    = splitByRank >-> atLeast 4
     fullHouseM      = onePairM `onRestOf` threeOfAKindM
 
     flushM          = splitBySuit >-> atLeast 5 >-> lastN 5
-    straightM       = (consecutiveRank >-> atLeast 5 >-> lastN 5) `before` straightAceM
+    straightM       = (setConsecutiveRank >-> atLeast 5 >-> lastN 5) `before` straightAceM
     threeOfAKindM   = splitByRank >-> atLeast 3
     twoPairM        = onePairM `onRestOf` onePairM
     onePairM        = splitByRank >-> atLeast 2
@@ -128,4 +128,4 @@ highestHand hand = toHandDescr <$> firstMatchOf handMatchers (sort hand)
     -- Special rule for straight with Ace as One
     straightAceM    = (M.filter ((== Ace) . cRank) >-> atLeast 1)
                       `onRestOf`
-                      (consecutiveRank >-> fromRank Two >-> atLeast 4 >-> firstN 4)
+                      (setConsecutiveRank >-> fromRank Two >-> atLeast 4 >-> firstN 4)

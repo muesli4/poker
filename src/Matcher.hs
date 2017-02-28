@@ -16,6 +16,7 @@ module Matcher
     , dropWhile
     , takeWhile
     , consecutiveBy
+    , setConsecutiveBy
     , splitBy
     , filter
     -- * Combinators on matchers
@@ -152,14 +153,18 @@ takeWhile :: (a -> Bool) -> Matcher a
 takeWhile p = M $ \xs -> [span p xs]
 
 -- | Groups the list into successive segments and produces a match for each.
-consecutiveBy :: (Eq b, Enum b, Ord b) => (a -> b) -> Matcher a
-consecutiveBy f = M $ \xs -> case groupSuccBy f $ L.sortBy (comparing f) xs of
+consecutiveBy :: (Eq b, Enum b) => (a -> b) -> Matcher a
+consecutiveBy f = M $ \xs -> case groupSuccBy f xs of
     []     -> []
     g : gs -> go [] g gs
   where
     go :: [[a]] -> [a] -> [[a]] -> [([a], [a])]
     go l m []         = [(m, concat $ reverse l)]
     go l m r@(x : xs) = (m, concat $ reverse l ++ r) : go (m : l) x xs
+
+setConsecutiveBy :: (Ord b, Enum b) => (a -> b) -> Matcher a
+setConsecutiveBy f =
+    M $ \xs -> runMatcher (consecutiveBy f) $ L.sortBy (comparing f) xs
 
 -- | Splits the match into all possible values occuring in the input after
 -- applying the translation function on it.
