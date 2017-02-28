@@ -49,18 +49,13 @@ groupSuccBy f (x : xs) = go x [] xs
 -- Every matcher should fulfill the following guarantees:
 --     - For every xs: when (ys, r) = f xs, then r = xs \ ys
 --
--- Matchers can do several things:
---     - Match input on different ways (non-deterministic) but the not matched
---       input has to be put to the rest
---     - Discard a complete branch
---     - Match on the rest of other matchers
---     - Match based on order
---
 newtype Matcher a = M ([a] -> [([a], [a])])
---                      ^        ^    ^
---                      |        |    '---- Remaining input
---                      |        |
---                      |        '-- Already matched input
+--                      ^     ^  ^    ^
+--                      |     |  |    '---- Remaining input
+--                      |     |  |
+--                      |     |  '-- Already matched input
+--                      |     |
+--                      |     '-- Non-determinisitc
 --                      |
 --                     input values to be matched
 
