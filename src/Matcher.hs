@@ -28,14 +28,20 @@ module Matcher
 import           Control.Applicative
 import           Data.Maybe
 import           Data.Monoid
+import           Data.Ord
 import           Data.Tuple
 import           Prelude             hiding (dropWhile, takeWhile, filter)
 import qualified Data.List           as L
 
 -- | Groups all adjacent-successive elements together, projected by a function.
 groupSuccBy :: Enum b => (a -> b) -> [a] -> [[a]]
-groupSuccBy f = L.groupBy successive
+groupSuccBy f [] = []
+groupSuccBy f (x : xs) = go x [] xs
   where
+    go x succs []                          = [reverse $ x : succs]
+    go x succs (x' : xs) | successive x x' = go x' (x : succs) xs
+                         | otherwise       = reverse (x : succs) : go x' [] xs
+
     prInt           = fromEnum . f
     successive x x' = prInt x + 1 == prInt x'
 
@@ -81,25 +87,25 @@ firstMatchOf ms xs = foldr (\t r -> f t <|> r) Nothing ms
   where
     f (m, y) = case runMatcher m xs of
         [] -> Nothing
-        r  -> Just (y, r)
+        ms -> Just (y, ms)
 
 -------------------------------------------------------------------------------
 -- Combining matchers
 
 -- | Use the second matcher on the match of the first.
-onMatchOf :: Matcher a -> Matcher a -> Matcher a
-onMatchOf (M f) (M g) = M $ \xs ->
+(>->) :: Matcher a -> Matcher a -> Matcher a
+M f >-> M g =  M $ \xs ->
     [ (zs, r ++ r')
     | (ys, r) <- f xs
     , (zs, r') <- g ys
     ]
 
-infixl 5 `onMatchOf`
-
-(>->) :: Matcher a -> Matcher a -> Matcher a
-(>->) = onMatchOf
-
 infixl 5 >->
+
+onMatchOf :: Matcher a -> Matcher a -> Matcher a
+onMatchOf = flip (>->)
+
+infixl 5 `onMatchOf`
 
 -- | Merge the results of two matchers, but make the results of the first one
 -- more important.
@@ -146,8 +152,8 @@ takeWhile :: (a -> Bool) -> Matcher a
 takeWhile p = M $ \xs -> [span p xs]
 
 -- | Groups the list into successive segments and produces a match for each.
-consecutiveBy :: (Eq b, Enum b) => (a -> b) -> Matcher a
-consecutiveBy f = M $ \xs -> case groupSuccBy f xs of
+consecutiveBy :: (Eq b, Enum b, Ord b) => (a -> b) -> Matcher a
+consecutiveBy f = M $ \xs -> case groupSuccBy f $ L.sortBy (comparing f) xs of
     []     -> []
     g : gs -> go [] g gs
   where
