@@ -86,7 +86,7 @@ compareHandDescr (HandDescr lh lcs lr) (HandDescr rh rcs rr) = case compare lh r
     lCompare = compare `on` reverse . map cRank
 
 consecutiveRank :: Matcher Card
-consecutiveRank = setConsecutiveBy cRank
+consecutiveRank = consecutiveBy cRank
 
 fromRank :: Rank -> Matcher Card
 fromRank rank = M.dropWhile $ (< rank) . cRank
