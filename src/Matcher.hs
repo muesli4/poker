@@ -1,18 +1,14 @@
--- | A list pattern matcher, which allows extraction of patterns in order,
--- matching on already matched input and on not matched input, in a
--- non-deterministic fashion.
---
--- The order of input is always preserved and sometimes even required.
+-- | This module provides functionality to non-deterministically match certain
+-- criteria on lists. These may involve order, consecutivity, amount or
+-- arbitrary predicates. Matchers may also be composed to build more powerful
+-- matchers on already matched results or even on unmatched results.
 module Matcher
+    -- * Basics
     ( Match
     , Matcher
     , runMatcher
     , firstMatchOf
-    -- * Combinators on matchers.
-    , before
-    , onRestOf
-    , onMatchOf
-    , (>->)
+    -- * Basic matchers
     , atLeast
     , atMost
     , lastN
@@ -22,6 +18,11 @@ module Matcher
     , consecutiveBy
     , splitBy
     , filter
+    -- * Combinators on matchers
+    , before
+    , onRestOf
+    , onMatchOf
+    , (>->)
     ) where
 
 import Control.Applicative

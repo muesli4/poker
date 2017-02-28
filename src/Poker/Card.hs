@@ -10,8 +10,6 @@ module Poker.Card
     , highestHand
     ) where
 
--- TODO show instances should be pretty
-
 import Control.Applicative
 import Data.Function
 import Data.List
@@ -53,12 +51,6 @@ deck :: [Card]
 deck = Card <$> enumAll <*> enumAll
   where
     enumAll = [minBound .. maxBound]
-
-hasSuit :: Suit -> Card -> Bool
-hasSuit s = (== s) . cSuit
-
-hasRank :: Rank -> Card -> Bool
-hasRank r = (== r) . cRank
 
 data Hand
     = HighCard      -- ^ the highest card of the hand
