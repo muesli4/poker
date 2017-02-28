@@ -46,8 +46,8 @@ groupSuccBy f (x : xs) = go x [] xs
     prInt           = fromEnum . f
     successive x x' = prInt x + 1 == prInt x'
 
--- Every matcher should fulfill the following guarantees:
---     - For every xs: when (ys, r) = f xs, then r = xs \ ys
+-- Every matcher should fulfill the following guarantee:
+--     For every xs: when (ys, r) = f xs, then r = xs \ ys
 --
 newtype Matcher a = M ([a] -> [([a], [a])])
 --                      ^     ^  ^    ^
@@ -57,7 +57,7 @@ newtype Matcher a = M ([a] -> [([a], [a])])
 --                      |     |
 --                      |     '-- Non-determinisitc
 --                      |
---                     input values to be matched
+--                     Input values to be matched
 
 -- | Adds an empty rest (helper function for matchers which match all input).
 noRest :: [a] -> ([a], [a])
@@ -119,23 +119,25 @@ onRestOf (M f) (M g) = M $ \xs ->
 -------------------------------------------------------------------------------
 -- Basic matchers
 
--- | Matches only lists with at least a certain amount of elements.
+-- | Only succeeds if there is at least a certain amount of elements in the
+-- input.
 atLeast :: Int -> Matcher a
 atLeast n = M f
   where
     f xs = if length (take n xs) < n then [] else [noRest xs]
 
--- | Matches only lists with at most a certain amount of elements.
+-- | Only succeeds if there is at most a certain amount of elements in the
+-- input.
 atMost :: Int -> Matcher a
 atMost n = M f
   where
     f xs = if length (take (succ n) xs) > n then [] else [noRest xs]
 
--- | Matches the upper end of a partial match.
+-- | Matches up to a certain number of elements at the end of the input.
 lastN :: Int -> Matcher a
 lastN n = M $ \xs -> [swap $ splitAt (length xs - n) xs]
 
--- | Matches the lower end of a partial match.
+-- | Matches up to a certain number of elements at the beginning of the input.
 firstN :: Int -> Matcher a
 firstN n = M $ \xs -> [splitAt n xs]
 
@@ -148,7 +150,7 @@ takeWhile :: (a -> Bool) -> Matcher a
 takeWhile p = M $ \xs -> [span p xs]
 
 -- | Groups the list into successive segments and produces a match for each.
-consecutiveBy :: (Eq b, Enum b) => (a -> b) -> Matcher a
+consecutiveBy :: Enum b => (a -> b) -> Matcher a
 consecutiveBy f = M $ \xs -> case groupSuccBy f xs of
     []     -> []
     g : gs -> go [] g gs
@@ -157,12 +159,13 @@ consecutiveBy f = M $ \xs -> case groupSuccBy f xs of
     go l m []         = [(m, concat $ reverse l)]
     go l m r@(x : xs) = (m, concat $ reverse l ++ r) : go (m : l) x xs
 
+-- | In contrast to 'consecutiveBy',  reorders the input after the criteria.
 setConsecutiveBy :: (Ord b, Enum b) => (a -> b) -> Matcher a
 setConsecutiveBy f =
     M $ \xs -> runMatcher (consecutiveBy f) $ L.sortBy (comparing f) xs
 
--- | Splits the match into all possible values occuring in the input after
--- applying the translation function on it.
+-- | Splits the input into all possible values occuring in the input after
+-- applying the translation function on it. Each chunk then gets a single match.
 splitBy :: Ord b => (a -> b) -> Matcher a
 splitBy f = M $ \xs -> map (`extract` xs) $ ordNub $ map f xs
   where
