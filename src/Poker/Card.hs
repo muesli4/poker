@@ -72,14 +72,16 @@ data HandDescr
     , hdRest  :: [Card] -- ^ Unrelated cards
     } deriving (Eq, Show)
 
--- | Compare the description of a hand by the rules of poker. FIXME equality is wrong
+-- | Compare the description of a hand by the rules of poker. 'EQ' does mean
+-- that two hands are equivalent in their value. They are however in no way
+-- equal, hence no instance of 'Ord'.
 compareHandDescr :: HandDescr -> HandDescr -> Ordering
 compareHandDescr (HandDescr lh lcs lr) (HandDescr rh rcs rr) = case compare lh rh of
     EQ -> case lCompare lcs rcs of
         EQ -> lCompare lr rr
         o  -> o
     o  -> o
-    where
+  where
     lCompare = compare `on` reverse . map cRank
 
 setConsecutiveRank :: Matcher Card
