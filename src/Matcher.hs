@@ -32,17 +32,12 @@ import           Data.Tuple
 import           Prelude             hiding (dropWhile, takeWhile, filter)
 import qualified Data.List           as L
 
--- | Groups all adjacent-successive elements together.
-groupSucc :: Enum b => (a -> b) -> [a] -> [[a]]
-groupSucc _ []       = []
-groupSucc f (y : ys) = go y [] ys
+-- | Groups all adjacent-successive elements together, projected by a function.
+groupSuccBy :: Enum b => (a -> b) -> [a] -> [[a]]
+groupSuccBy f = L.groupBy successive
   where
-    go x succs []                          = [reverse $ x : succs]
-    go x succs (x' : xs) | successive x x' = go x' (x : succs) xs
-                         | otherwise       = reverse (x : succs) : go x' [] xs
-
-    prInt                                  = fromEnum . f
-    successive x x'                        = prInt x + 1 == prInt x'
+    prInt           = fromEnum . f
+    successive x x' = prInt x + 1 == prInt x'
 
 -- Every matcher should fulfill the following guarantees:
 --     - For every xs: when (ys, r) = f xs, then r = xs \ ys
@@ -152,7 +147,7 @@ takeWhile p = M $ \xs -> [span p xs]
 
 -- | Groups the list into successive segments and produces a match for each.
 consecutiveBy :: (Eq b, Enum b) => (a -> b) -> Matcher a
-consecutiveBy f = M $ \xs -> case groupSucc f xs of
+consecutiveBy f = M $ \xs -> case groupSuccBy f xs of
     []     -> []
     g : gs -> go [] g gs
   where
