@@ -25,12 +25,12 @@ module Matcher
     , (>->)
     ) where
 
-import Control.Applicative
-import qualified Data.List as L
-import Data.Maybe
-import Data.Monoid
-import Data.Tuple
-import Prelude hiding (dropWhile, takeWhile, filter)
+import           Control.Applicative
+import           Data.Maybe
+import           Data.Monoid
+import           Data.Tuple
+import           Prelude             hiding (dropWhile, takeWhile, filter)
+import qualified Data.List           as L
 
 -- | Groups all adjacent-successive elements together.
 groupSucc :: Enum b => (a -> b) -> [a] -> [[a]]
