@@ -14,6 +14,7 @@ import Control.Applicative
 import Data.Function
 import Data.List
 import Data.Maybe
+import Data.Ord
 
 import Matcher             as M
 
@@ -101,7 +102,7 @@ toHandDescr :: (Hand, [Match Card]) -> HandDescr
 toHandDescr (h, ms) = uncurry (HandDescr h) $ head ms
 
 highestHand :: [Card] -> Maybe HandDescr
-highestHand cs = toHandDescr <$> firstMatchOf handMatchers (sort cs)
+highestHand cs = toHandDescr <$> firstMatchOf handMatchers (sortBy (comparing cRank) cs)
   where
     handMatchers    = [ (royalFlushM, RoyalFlush)
                       , (straightFlushM, StraightFlush)
