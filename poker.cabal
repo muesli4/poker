@@ -1,0 +1,21 @@
+name:                poker
+version:             0.1.0.0
+synopsis:            A simplistic library for poker (mostly hand identification)
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Moritz Bruder
+maintainer:          muesli4@gmail.com
+-- copyright:           
+-- category:            
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Matcher, Poker.Pretty, Poker.Card
+  -- other-modules:       
+  other-extensions:    NoMonomorphismRestriction
+  build-depends:       base >=4.9 && <4.10, ansi-wl-pprint >=0.6 && <0.7
+  hs-source-dirs:      src
+  default-language:    Haskell2010
