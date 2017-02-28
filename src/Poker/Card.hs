@@ -84,8 +84,8 @@ compareHandDescr (HandDescr lh lcs lr) (HandDescr rh rcs rr) = case compare lh r
   where
     lCompare = compare `on` reverse . map cRank
 
-setConsecutiveRank :: Matcher Card
-setConsecutiveRank = setConsecutiveBy cRank
+consecutiveRank :: Matcher Card
+consecutiveRank = setConsecutiveBy cRank
 
 fromRank :: Rank -> Matcher Card
 fromRank rank = M.dropWhile $ (< rank) . cRank
@@ -101,7 +101,7 @@ toHandDescr :: (Hand, [Match Card]) -> HandDescr
 toHandDescr (h, ms) = uncurry (HandDescr h) $ head ms
 
 highestHand :: [Card] -> Maybe HandDescr
-highestHand cs = toHandDescr <$> firstMatchOf handMatchers cs
+highestHand cs = toHandDescr <$> firstMatchOf handMatchers (sort cs)
   where
     handMatchers    = [ (royalFlushM, RoyalFlush)
                       , (straightFlushM, StraightFlush)
@@ -115,13 +115,14 @@ highestHand cs = toHandDescr <$> firstMatchOf handMatchers cs
                       , (highCardM, HighCard)
                       ]
 
-    royalFlushM     = splitBySuit >-> setConsecutiveRank >-> fromRank Ten >-> atLeast 5
+    -- Note: All rules assume order by card rank.
+    royalFlushM     = splitBySuit >-> consecutiveRank >-> fromRank Ten >-> atLeast 5
     straightFlushM  = splitBySuit >-> straightM
     fourOfAKindM    = splitByRank >-> atLeast 4
     fullHouseM      = onePairM `onRestOf` threeOfAKindM
 
     flushM          = splitBySuit >-> atLeast 5 >-> lastN 5
-    straightM       = (setConsecutiveRank >-> atLeast 5 >-> lastN 5) `before` straightAceM
+    straightM       = (consecutiveRank >-> atLeast 5 >-> lastN 5) `before` straightAceM
     threeOfAKindM   = splitByRank >-> atLeast 3
     twoPairM        = onePairM `onRestOf` onePairM
     onePairM        = splitByRank >-> atLeast 2
@@ -130,4 +131,4 @@ highestHand cs = toHandDescr <$> firstMatchOf handMatchers cs
     -- Special rule for straight with Ace as One
     straightAceM    = (M.filter ((== Ace) . cRank) >-> atLeast 1)
                       `onRestOf`
-                      (setConsecutiveRank >-> fromRank Two >-> atLeast 4 >-> firstN 4)
+                      (consecutiveRank >-> fromRank Two >-> atLeast 4 >-> firstN 4)
