@@ -46,28 +46,30 @@ groupSuccBy f (x : xs) = go x [] xs
     prInt           = fromEnum . f
     successive x x' = prInt x + 1 == prInt x'
 
+type Match a = ([a], [a])
+--               ^    ^
+--               |    '-- Remaining unmatched input
+--               |
+--               '------- Already matched input
+
 -- Every matcher should fulfill the following guarantee:
 --     For every xs: when (ys, r) = f xs, then r = xs \ ys
 --
-newtype Matcher a = M ([a] -> [([a], [a])])
---                      ^     ^  ^    ^
---                      |     |  |    '---- Remaining input
---                      |     |  |
---                      |     |  '-- Already matched input
---                      |     |
+newtype Matcher a = M ([a] -> [Match a])
+--                      ^     ^
 --                      |     '-- Non-determinisitc
 --                      |
---                     Input values to be matched
+--                      '-------- Input values to be matched
 
 -- | Adds an empty rest (helper function for matchers which match all input).
-noRest :: [a] -> ([a], [a])
+noRest :: [a] -> Match a
 noRest xs = (xs, [])
 
-instance Monoid (Matcher a) where
-    mappend = before
-    mempty  = M $ const []
+instance Semigroup (Matcher a) where
+    (<>) = before
 
-type Match a = ([a], [a])
+instance Monoid (Matcher a) where
+    mempty  = M $ const []
 
 -- | Run a 'Matcher' on an input, and return its first match, if any.
 --runMatcher :: Matcher a -> [a] -> ([a], [a])
